@@ -12,3 +12,4 @@ sentence-transformers
 PyMuPDF
 pg8000
 langchain-google-genai
+psycopg2
