@@ -11,3 +11,4 @@ chromadb
 sentence-transformers
 PyMuPDF
 pg8000
+langchain-google-genai
