@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Upload, Briefcase, User, ArrowRight, Loader2 } from "lucide-react";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function Home() {
   const navigate = useNavigate();
@@ -11,8 +13,9 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+
     if (!file || !name || !role) {
       setError("Please fill out all fields and upload a resume.");
       return;
@@ -27,18 +30,27 @@ export default function Home() {
     formData.append("file", file);
 
     try {
-      const res = await axios.post("http://localhost:8000/upload_resume", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      
+      const res = await axios.post(
+        `${API_URL}/upload_resume`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+
       const sessionId = res.data.id;
-      
-      await axios.post(`http://localhost:8000/sessions/${sessionId}/next_question`);
-      
+
+      await axios.post(
+        `${API_URL}/sessions/${sessionId}/next_question`
+      );
+
       navigate(`/interview/${sessionId}`);
     } catch (err: any) {
       console.error(err);
-      setError(err.response?.data?.detail || "Failed to start interview. Is the backend running?");
+      setError(
+        err.response?.data?.detail ||
+          "Failed to start interview. Is the backend running?"
+      );
       setLoading(false);
     }
   };
@@ -50,8 +62,14 @@ export default function Home() {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-black text-white mb-6 shadow-xl">
             <Briefcase size={32} />
           </div>
-          <h1 className="text-3xl font-bold tracking-tight mb-2 text-gray-900">Technical Interview</h1>
-          <p className="text-gray-500">AI-powered role-based candidate screening</p>
+
+          <h1 className="text-3xl font-bold tracking-tight mb-2 text-gray-900">
+            Technical Interview
+          </h1>
+
+          <p className="text-gray-500">
+            AI-powered role-based candidate screening
+          </p>
         </div>
 
         <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-200">
@@ -63,11 +81,15 @@ export default function Home() {
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Candidate Name</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Candidate Name
+              </label>
+
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <User className="h-5 w-5 text-gray-400" />
                 </div>
+
                 <input
                   type="text"
                   className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-black focus:border-transparent outline-none transition-all text-black"
@@ -80,11 +102,15 @@ export default function Home() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Target Role</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Target Role
+              </label>
+
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Briefcase className="h-5 w-5 text-gray-400" />
                 </div>
+
                 <input
                   type="text"
                   className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-black focus:border-transparent outline-none transition-all text-black"
@@ -97,23 +123,35 @@ export default function Home() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Upload Resume (PDF)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Upload Resume (PDF)
+              </label>
+
               <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-200 border-dashed rounded-xl hover:border-gray-300 transition-colors bg-gray-50">
                 <div className="space-y-1 text-center">
                   <Upload className="mx-auto h-12 w-12 text-gray-400" />
+
                   <div className="flex text-sm text-gray-600 justify-center">
                     <label className="relative cursor-pointer bg-transparent rounded-md font-medium text-black hover:text-gray-700 focus-within:outline-none">
-                      <span>{file ? file.name : "Upload a file"}</span>
-                      <input 
-                        type="file" 
-                        className="sr-only" 
+                      <span>
+                        {file ? file.name : "Upload a file"}
+                      </span>
+
+                      <input
+                        type="file"
+                        className="sr-only"
                         accept=".pdf"
-                        onChange={(e) => setFile(e.target.files?.[0] || null)}
+                        onChange={(e) =>
+                          setFile(e.target.files?.[0] || null)
+                        }
                         required
                       />
                     </label>
                   </div>
-                  <p className="text-xs text-gray-500">PDF up to 10MB</p>
+
+                  <p className="text-xs text-gray-500">
+                    PDF up to 10MB
+                  </p>
                 </div>
               </div>
             </div>

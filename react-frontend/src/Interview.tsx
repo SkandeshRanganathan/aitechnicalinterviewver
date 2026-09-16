@@ -3,10 +3,12 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Send, User, Bot, Loader2, CheckCircle } from "lucide-react";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 export default function Interview() {
   const { sessionId } = useParams();
   const navigate = useNavigate();
-  
+
   const [currentQuestion, setCurrentQuestion] = useState<any>(null);
   const [answer, setAnswer] = useState("");
   const [loading, setLoading] = useState(true);
@@ -17,7 +19,10 @@ export default function Interview() {
   useEffect(() => {
     const fetchQuestion = async () => {
       try {
-        const res = await axios.post(`http://localhost:8000/sessions/${sessionId}/next_question`);
+        const res = await axios.post(
+          `${API_URL}/sessions/${sessionId}/next_question`
+        );
+
         setCurrentQuestion(res.data);
         setLoading(false);
       } catch (err) {
@@ -25,32 +30,43 @@ export default function Interview() {
         setLoading(false);
       }
     };
+
     fetchQuestion();
   }, [sessionId]);
 
   const handleSubmitAnswer = async () => {
     if (!answer.trim()) return;
-    
+
     setSubmitting(true);
+
     try {
-      await axios.post(`http://localhost:8000/qa/${currentQuestion.id}/answer`, { answer });
-      
+      await axios.post(
+        `${API_URL}/qa/${currentQuestion.id}/answer`,
+        { answer }
+      );
+
       if (questionCount >= 5) {
         setFinished(true);
+
         setTimeout(() => {
           navigate(`/summary/${sessionId}`);
         }, 1500);
+
         return;
       }
 
       setAnswer("");
-      const res = await axios.post(`http://localhost:8000/sessions/${sessionId}/next_question`);
+
+      const res = await axios.post(
+        `${API_URL}/sessions/${sessionId}/next_question`
+      );
+
       setCurrentQuestion(res.data);
-      setQuestionCount(prev => prev + 1);
-      
+      setQuestionCount((prev) => prev + 1);
     } catch (err) {
       console.error(err);
     }
+
     setSubmitting(false);
   };
 
@@ -70,8 +86,12 @@ export default function Interview() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="flex flex-col items-center text-gray-900">
           <CheckCircle className="h-12 w-12 text-green-500 mb-4" />
-          <h2 className="text-2xl font-semibold">Interview Complete</h2>
-          <p className="text-gray-500 mt-2">Generating your evaluation summary...</p>
+          <h2 className="text-2xl font-semibold">
+            Interview Complete
+          </h2>
+          <p className="text-gray-500 mt-2">
+            Generating your evaluation summary...
+          </p>
         </div>
       </div>
     );
@@ -85,13 +105,14 @@ export default function Interview() {
             <Bot size={20} className="text-blue-600" />
             <span>Question {questionCount} of 5</span>
           </div>
-          
+
           <h2 className="text-2xl md:text-3xl font-semibold leading-relaxed text-gray-900">
             {currentQuestion?.question_text || "Loading question..."}
           </h2>
-          
+
           <div className="p-4 bg-blue-50 border border-blue-100 rounded-2xl text-sm text-blue-800 leading-relaxed">
-            Take your time to formulate a structured answer. Focus on your technical reasoning and trade-offs.
+            Take your time to formulate a structured answer. Focus on your
+            technical reasoning and trade-offs.
           </div>
         </div>
       </div>
