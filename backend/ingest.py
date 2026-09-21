@@ -2,8 +2,8 @@ import os
 from dotenv import load_dotenv
 from langchain_community.document_loaders import PyMuPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
+from langchain_huggingface import HuggingFaceEmbeddings
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -36,15 +36,13 @@ def ingest_knowledge_base():
     chunks = text_splitter.split_documents(documents)[:40]
     print(f"Created {len(chunks)} chunks.")
 
-    print("3. Generating embeddings and storing in Vector DB (Chroma)...")
-
-    embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001")
-    
+    embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
     
     vectorstore = Chroma.from_documents(
         documents=chunks, 
         embedding=embeddings, 
-        persist_directory=persist_directory
+        persist_directory=persist_directory,
+        collection_metadata={"hnsw:space": "cosine"}
     )
     
     print("Ingestion complete! Vector database saved to ./chroma_db")

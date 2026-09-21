@@ -1,14 +1,19 @@
 import os
-from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_community.vectorstores import Chroma
 from langchain_core.prompts import PromptTemplate
+from .parse import extract_skills_from_resume
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-CHROMA_PATH = os.path.join(BASE_DIR, "chroma_db")
+CHROMA_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "chroma_db")
 
 def get_vector_store():
-    embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001")
-    return Chroma(persist_directory=CHROMA_PATH, embedding_function=embeddings)
+    embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+    return Chroma(
+        persist_directory=CHROMA_PATH, 
+        embedding_function=embeddings,
+        collection_metadata={"hnsw:space": "cosine"}
+    )
 
 def generate_interview_question(role: str, skills: str, previous_qa: list) -> str:
     vectorstore = get_vector_store()
