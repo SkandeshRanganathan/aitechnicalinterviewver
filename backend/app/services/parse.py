@@ -1,6 +1,4 @@
 import fitz 
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_core.prompts import PromptTemplate
 
 def extract_text_from_pdf(pdf_bytes: bytes) -> str:
     doc = fitz.open(stream=pdf_bytes, filetype="pdf")
@@ -9,25 +7,24 @@ def extract_text_from_pdf(pdf_bytes: bytes) -> str:
         text += page.get_text()
     return text
 
+from keybert import KeyBERT
+
+# Initialize KeyBERT with our existing local model
+kw_model = KeyBERT(model="all-MiniLM-L6-v2")
+
 def extract_skills_from_resume(resume_text: str) -> str:
-    llm = ChatGoogleGenerativeAI(model="gemini-3.7-flash", temperature=0, max_retries=0)
-    prompt = PromptTemplate.from_template(
-        "Extract the core technical skills, technologies, and domain exposure from this resume.\n"
-        "Return them as a concise comma-separated list.\n\nResume:\n{resume_text}"
-    )
-    chain = prompt | llm
-    
     try:
-        response = chain.invoke({"resume_text": resume_text})
+        # Use KeyBERT to extract the top 10 technical keywords
+        keywords = kw_model.extract_keywords(
+            resume_text, 
+            keyphrase_ngram_range=(1, 2), 
+            stop_words='english', 
+            top_n=10
+        )
         
-        # Gemini 3.6 sometimes returns a list of content blocks instead of a flat string
-        content = response.content
-        if isinstance(content, list):
-            skills_text = " ".join([part.get("text", "") for part in content if isinstance(part, dict)])
-        else:
-            skills_text = str(content)
-            
+        # Format the output as a comma-separated list of just the keywords (ignoring scores)
+        skills_text = ", ".join([kw[0] for kw in keywords])
         return skills_text
     except Exception as e:
-        print(f"API Rate limit hit: {e}")
+        print(f"Local NLP extraction failed: {e}")
         return "Python, React, Node.js, SQL, Machine Learning"
